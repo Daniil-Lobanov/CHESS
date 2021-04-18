@@ -19,32 +19,31 @@ namespace _5_с_
     class Desk
     {
         public const int maxFigureNum = 16; //-2 коня = 14 в каждой команде
-        public static CellStatus[,] field;
-        public static CellStatus[,] battleField;
+        public static CellStatus[] field;
+        public static int[] battleField;
         public int fieldSize;
         public int enemyCnt;
         /// //////////////////////////////////////////////////////////////
         class Horse
         {
-            public int x, y; //сделать свойствами
-            public int figuresUnderAttack = 0;
+            public int coord;
+            //public int figuresUnderAttack = 0;
 
             int[] moveX = {1, -1, -2, 2};
             int[] moveY = { 2, -2, -1, 1};
 
             bool moveIsPossible(int x, int y, int fieldSize)
             {
-                if (((this.x + x) <= fieldSize - 1) && ((this.y + y) <= fieldSize - 1) &&
-                    ((this.x + x) >= 0) && ((this.y + y) >= 0))
+                if (((this.coord + x*y) <= fieldSize*fieldSize - 1) &&
+                    ((this.coord + x*y) >= 0))
                 {
                     return true;
                 }
                 return false;
             }
 
-            public bool isThreatingSomeone(/*ref CellStatus[,] currentBattleField,*/ int fieldSize)
+            public bool isThreatingSomeone(int fieldSize)
             {
-                CellStatus[,] currentBattleField = new CellStatus[fieldSize, fieldSize];
                 bool isThreatingSomeone = false;
                 for (int i = 0; i < moveX.Length; i++)
                 {
@@ -53,13 +52,13 @@ namespace _5_с_
                     {
                         if (moveIsPossible(moveX[i], moveY[j], fieldSize))
                         {
-                            //если противник в клетке хода есть, и если эта клетак не находится под атакой
-                            if (field[x + moveX[i], y + moveY[j]] == CellStatus.enemy && 
-                                currentBattleField[x + moveX[i], y + moveY[j]] != CellStatus.underAttack)
+                            int move = coord + moveX[i] * moveY[j];
+                            //если противник в клетке хода есть, и если эта клетка не находится под атакой
+                            if (field[move] == CellStatus.enemy && battleField[move] != 1)
                             {
-                                Console.WriteLine("field[" + x + " + " +  moveX[i] + ", " + y + " + " + moveY[j] + "] == " + (field[x + moveX[i], y + moveY[j]].ToString()));
-                                currentBattleField[x + moveX[i], y + moveY[j]] = CellStatus.underAttack;
-                                figuresUnderAttack++;
+                                Console.WriteLine("field[" + coord + " + " +  move + "] == " + field[move].ToString());
+                                field[move] = CellStatus.underAttack;
+                                //figuresUnderAttack++;
                                 isThreatingSomeone = true;
                             }
                         }
@@ -69,10 +68,9 @@ namespace _5_с_
             }
 
 
-            public Horse(int x_init, int y_init)
+            public Horse(int coord_init)
             {
-                x = x_init;
-                y = y_init;
+                coord = coord_init;
             }
         }
 
@@ -81,38 +79,136 @@ namespace _5_с_
         public Desk(int fieldSize)
         {
             this.fieldSize = fieldSize;
-            field = new CellStatus[fieldSize, fieldSize];
-            battleField = new CellStatus[fieldSize, fieldSize];
+            field = new CellStatus[fieldSize*fieldSize];
+            battleField = new int[fieldSize * fieldSize];
 
-            for (int i = 0; i<fieldSize; i++)
+            for (int i = 0; i<fieldSize*fieldSize-1; i++)
             {
-                for (int j = 0; j< this.fieldSize; j++)
-                {
-                    battleField[i, j] = CellStatus.empty;
-                }
+                 battleField[i] = 0;
             }
             enemyCnt = 0;
         }
 
-        bool moveToTheNextCell(ref int x, ref int y)
+        //bool moveToTheNextCell(ref int x, ref int y)
+        //{
+        //    if (x < fieldSize - 1)
+        //    {
+        //        x++;
+        //        return true;
+        //    }
+        //    else
+        //    {
+        //        if (y < fieldSize - 1)
+        //        {
+        //            x = 0;
+        //            y++;
+        //            return true;
+        //        }
+        //    }
+        //    return false;
+        //}
+
+
+        //public int FindSol()
+        //{
+        //    for (int depth = 0; depth < fieldSize*fieldSize; depth++)
+        //    {
+        //        Console.WriteLine("(ВНЕШНИЙ УРОВЕНЬ)\nВыбираем новую ячейку");
+        //        if (FindSol(1, enemyCnt, 0))
+        //        {
+        //            return depth;
+        //        }
+        //    }
+        //    return 0;
+        //}
+
+        //bool IsFitting(int i)
+        //{
+        //    Horse horse = new Horse(i);
+        //    if (horse.isThreatingSomeone(fieldSize))
+        //    {
+        //        enemyCnt -= horse.figuresUnderAttack;
+        //        return true;
+        //    }
+        //    return false;
+        //}
+
+
+        void RefreshIsBeaten()
         {
-            if (x < fieldSize - 1)
+            for(int i = 0; i<fieldSize*fieldSize-1; i++)
             {
-                x++;
-                return true;
-            }
-            else
-            {
-                if (y < fieldSize - 1)
+                if (field[i]==CellStatus.horse)
                 {
-                    x = 0;
-                    y++;
-                    return true;
+                    Horse horse = new Horse(i);
+                    horse.isThreatingSomeone(fieldSize);
+                }
+            }
+        }
+
+        bool IsFitting(/*int i*/)
+        {
+            //Horse horse = new Horse(i);
+            //bool res = horse.isThreatingSomeone(fieldSize);
+
+            //if (res)
+            //{
+            //    return true;
+            //}
+
+            //field[i] = CellStatus.empty;
+            //return false;
+            return enemyCnt == 0;
+        }
+
+        public int FindSol()
+        {
+            if (IsFitting())
+            {
+                return 0;
+            }
+
+            for (int depth = 0; depth < fieldSize*fieldSize-1; depth++)
+            {
+                Console.WriteLine("(ВНЕШНИЙ УРОВЕНЬ)\nВыбираем новую ячейку");
+                if (FindSol(1, depth, /*int[]currentBattleField,*/ 0))
+                {
+                    return depth;
+                }
+            }
+            return 0;
+        }
+
+        bool FindSol(int amount, int depth, /*int[]currentBattleField,*/ int prevPos)
+        {
+            for (int i = prevPos; i< fieldSize*fieldSize-1; i++)
+            {
+                Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\ny = " + i);
+
+                if (field[i] == CellStatus.empty)
+                {
+                    field[i] = CellStatus.horse;
+                    RefreshIsBeaten();
+                    
+                    if (amount < depth)
+                    {
+                        if (FindSol(amount+1, depth, i))
+                        {
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        if(IsFitting()) //проверяет непобитые фигуры
+                        {
+                            return true;
+                        }
+                    }
+                    field[i] = CellStatus.empty;
                 }
             }
             return false;
         }
-
 
         //public int FindBestSol()
         //{
@@ -133,28 +229,28 @@ namespace _5_с_
         //}
 
 
-        public int FindSol()
-        {
-            int bestResult = enemyCnt;
-            bool solutionFound = false;
+        //public int FindSol()
+        //{
+        //    int bestResult = enemyCnt;
+        //    bool solutionFound = false;
 
-            for (int y = 0; y < fieldSize; y++)
-            {
-                for (int x = 0; x < fieldSize; x++)
-                {
-                    Console.WriteLine("(ВНЕШНИЙ УРОВЕНЬ)\nВыбираем новую ячейку");
-                    if (FindSol(0, ref bestResult, enemyCnt, x, y))//if (FindSol(0, ref bestResult, battleField, enemyCnt, x, y))
-                    {
-                        solutionFound = true;
-                    }
-                }
-            }
-            if (solutionFound)
-            {
-                return bestResult;
-            }
-            return 0;
-        }
+        //    for (int y = 0; y < fieldSize; y++)
+        //    {
+        //        for (int x = 0; x < fieldSize; x++)
+        //        {
+        //            Console.WriteLine("(ВНЕШНИЙ УРОВЕНЬ)\nВыбираем новую ячейку");
+        //            if (FindSol(0, ref bestResult, enemyCnt, x, y))//if (FindSol(0, ref bestResult, battleField, enemyCnt, x, y))
+        //            {
+        //                solutionFound = true;
+        //            }
+        //        }
+        //    }
+        //    if (solutionFound)
+        //    {
+        //        return bestResult;
+        //    }
+        //    return 0;
+        //}
 
         //bool TryAddHorse(int x, int y, ref int currentResult, ref CellStatus[,] currentBattleField, ref int figuresUnderAttack)
         //{
@@ -218,52 +314,52 @@ namespace _5_с_
 
 
 
-        bool FindSol(int currentResult, ref int bestResult, int enemyCnt, int x, int y)
-        {
-            int i = y;
-            int j = x;
-            while (moveToTheNextCell(ref j, ref i))
-            {
-                //Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\ny = " + i + "; x = " + j);
-                if (field[i, j] == CellStatus.empty)
-                {
-                    Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\ny = " + i + "; x = " + j);
-                    Horse horse = new Horse(j, i);
+        //bool FindSol(int currentResult, ref int bestResult, int enemyCnt, int x, int y)
+        //{
+        //    int i = y;
+        //    int j = x;
+        //    while (moveToTheNextCell(ref j, ref i))
+        //    {
+        //        //Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\ny = " + i + "; x = " + j);
+        //        if (field[i, j] == CellStatus.empty)
+        //        {
+        //            Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\ny = " + i + "; x = " + j);
+        //            Horse horse = new Horse(j, i);
 
-                    if (horse.isThreatingSomeone(fieldSize))
-                    {
-                        //помещаем лошадь
-                        battleField[x, y] = CellStatus.horse;
-                        currentResult++;
+        //            if (horse.isThreatingSomeone(fieldSize))
+        //            {
+        //                //помещаем лошадь
+        //                battleField[x, y] = CellStatus.horse;
+        //                currentResult++;
 
-                        if (enemyCnt - horse.figuresUnderAttack > 0) //ПРЕДУСМОТРЕТЬ СИТУАЦИЮ ЕСЛИ НИКАК НЕ ПОБИТЬ ФИГУРУ!!!
-                        {
-                            Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\nНашли неполное решение");
-                            Console.WriteLine("enemy2go = " + (enemyCnt - horse.figuresUnderAttack));
+        //                if (enemyCnt - horse.figuresUnderAttack > 0) //ПРЕДУСМОТРЕТЬ СИТУАЦИЮ ЕСЛИ НИКАК НЕ ПОБИТЬ ФИГУРУ!!!
+        //                {
+        //                    Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\nНашли неполное решение");
+        //                    Console.WriteLine("enemy2go = " + (enemyCnt - horse.figuresUnderAttack));
 
-                            Console.WriteLine("переходим на шаг ниже с y=" + i + "; x=" + j);
-                            if (FindSol(currentResult, ref bestResult, enemyCnt - horse.figuresUnderAttack, j, i))
-                            {
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\nНашли полное решение = " + currentResult + "!!!");
-                            if (currentResult < bestResult)
-                            {
-                                bestResult = currentResult;
-                            }
-                            return true;
-                        }
-                        //убираем фигуру с поля
-                        battleField[x, y] = CellStatus.empty;
-                        currentResult--;
-                    }
-                }
-            }
-            return false;
-        }
+        //                    Console.WriteLine("переходим на шаг ниже с y=" + i + "; x=" + j);
+        //                    if (FindSol(currentResult, ref bestResult, enemyCnt - horse.figuresUnderAttack, j, i))
+        //                    {
+        //                        return true;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    Console.WriteLine("(ВНУТРЕННИЙ УРОВЕНЬ)\nНашли полное решение = " + currentResult + "!!!");
+        //                    if (currentResult < bestResult)
+        //                    {
+        //                        bestResult = currentResult;
+        //                    }
+        //                    return true;
+        //                }
+        //                //убираем фигуру с поля
+        //                battleField[x, y] = CellStatus.empty;
+        //                currentResult--;
+        //            }
+        //        }
+        //    }
+        //    return false;
+        //}
 
 
 

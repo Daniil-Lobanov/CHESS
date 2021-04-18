@@ -52,15 +52,15 @@ namespace _5_с_
                     switch (dataCell.Style.BackColor.Name)
                     {
                         case ("Red"):
-                            field[i, j] = CellStatus.enemy;
+                            field[i*j] = CellStatus.enemy;
                             enemyCnt++;
-                            Console.WriteLine(field[i, j].ToString());
+                            Console.WriteLine(field[i*j].ToString());
                             break;
                         case ("Blue"):
-                            field[i, j] = CellStatus.friend;
+                            field[i*j] = CellStatus.friend;
                             break;
                         default:
-                            field[i, j] = CellStatus.empty;
+                            field[i*j] = CellStatus.empty;
                             break;
                     }
                 }
@@ -76,7 +76,7 @@ namespace _5_с_
                 {
                     dataCell = grid.Rows[i].Cells[j];
 
-                    switch(battleField[i,j])
+                    switch(field[i*j])
                     {
                         case (CellStatus.horse):
                             dataCell.Style.BackColor = Color.Purple;
@@ -93,6 +93,12 @@ namespace _5_с_
                             {
                                 grid.Rows[i].Cells[j].Style.BackColor = Color.DimGray;
                             }
+                            break;
+                    }
+                    switch (battleField[i*j])
+                    {
+                        case (1):
+                            dataCell.Style.BackColor = Color.DarkOrange;
                             break;
                     }
                 }
