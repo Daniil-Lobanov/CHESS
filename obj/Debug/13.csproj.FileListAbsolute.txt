@@ -1,0 +1,4 @@
+D:\C#\Лабы стр и алг 4 семестр\3\Backtracking(18конь)\obj\Debug\13.csprojAssemblyReference.cache
+D:\C#\Лабы стр и алг 4 семестр\3\Backtracking(18конь)\obj\Debug\_5_с_.ChessForm.resources
+D:\C#\Лабы стр и алг 4 семестр\3\Backtracking(18конь)\obj\Debug\_5_с_.ParamsForm.resources
+D:\C#\Лабы стр и алг 4 семестр\3\Backtracking(18конь)\obj\Debug\13.csproj.GenerateResource.cache
